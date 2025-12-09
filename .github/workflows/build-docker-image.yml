@@ -5,7 +5,6 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-# 必须添加这个权限配置，否则无法推送到 GHCR
 permissions:
   contents: read
   packages: write
@@ -40,8 +39,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          # 关键点：这里构建了 amd64 和 arm64 双架构，适配你的所有二进制文件
           platforms: linux/amd64,linux/arm64
           push: true
-          # 镜像地址格式: ghcr.io/用户名/自定义镜像名:latest
-          # 注意：这里会自动把你的用户名转为小写，Docker要求必须小写
-          tags: ghcr.io/${{ steps.string.outputs.lowercase }}/my-node-proxy:latest
+          # 最终镜像地址示例: ghcr.io/用户名/node-all:latest
+          tags: ghcr.io/${{ steps.string.outputs.lowercase }}/node-all:latest
