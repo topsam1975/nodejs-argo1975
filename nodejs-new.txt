@@ -9,11 +9,10 @@ const exec = promisify(require('child_process').exec);
 const { execSync } = require('child_process');        // 只填写UPLOAD_URL将上传节点,同时填写UPLOAD_URL和PROJECT_URL将上传订阅
 const UPLOAD_URL = process.env.UPLOAD_URL || '';      // 节点或订阅自动上传地址,需填写部署Merge-sub项目后的首页地址,例如：https://merge.xxx.com
 const PROJECT_URL = process.env.PROJECT_URL || '';    // 需要上传订阅或保活时需填写项目分配的url,例如：https://google.com
-const AUTO_ACCESS = process.env.AUTO_ACCESS || false; // false关闭自动保活，true开启,需同时填写PROJECT_URL变量
 const FILE_PATH = process.env.FILE_PATH || './tmp';   // 运行目录,sub节点文件保存目录
 const SUB_PATH = process.env.SUB_PATH || 'letmego';       // 订阅路径
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3671;        // http服务订阅端口
-const UUID = process.env.UUID || 'ec743c06-de77-4558-9903-108c2c1abf05'; // 使用哪吒v1,在不同的平台运行需修改UUID,否则会覆盖
+const UUID = process.env.UUID || '4045c448-5861-4346-a3de-9875bc955cab'; // 使用哪吒v1,在不同的平台运行需修改UUID,否则会覆盖
 const NEZHA_SERVER = process.env.NEZHA_SERVER || '';        // 哪吒v1填写形式: nz.abc.com:8008  哪吒v0填写形式：nz.abc.com
 const NEZHA_PORT = process.env.NEZHA_PORT || '';            // 使用哪吒v1请留空，哪吒v0需填写
 const NEZHA_KEY = process.env.NEZHA_KEY || '';              // 哪吒v1的NZ_CLIENT_SECRET或哪吒v0的agent密钥
@@ -22,7 +21,7 @@ const ARGO_AUTH = process.env.ARGO_AUTH || '';              // 固定隧道密�
 const ARGO_PORT = process.env.ARGO_PORT || 8001;            // 固定隧道端口,使用token需在cloudflare后台设置和这里一致
 const CFIP = process.env.CFIP || 'cdns.doon.eu.org';        // 节点优选域名或优选ip  
 const CFPORT = process.env.CFPORT || 443;                   // 节点优选域名或优选ip对应的端口
-const NAME = process.env.NAME || 'nodehome';                        // 节点名称
+const NAME = process.env.NAME || 'node';                        // 节点名称
 
 // 创建运行文件夹
 if (!fs.existsSync(FILE_PATH)) {
@@ -108,9 +107,53 @@ function cleanupOldFiles() {
   }
 }
 
-// 根路由
+// --------------------------------------------------------------------------------
+// [功能 1 & 2] 智能伪装首页 (优先 index.html，否则使用极客模板)
+// --------------------------------------------------------------------------------
 app.get("/", function(req, res) {
-  res.send("Hello world!");
+  const customPagePath = path.join(__dirname, 'index.html');
+
+  if (fs.existsSync(customPagePath)) {
+    // 策略 A: 如果同目录下存在 index.html，直接显示
+    res.sendFile(customPagePath);
+  } else {
+    // 策略 B: 否则显示内置的极客风格导航页 (替代 Hello World)
+    const geekHtml = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人导航 | My Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f12; color: #e0e0e0; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { text-align: center; max-width: 600px; padding: 40px; background: #1a1a1f; border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+        h1 { font-weight: 300; margin-bottom: 10px; color: #fff; }
+        p { color: #888; margin-bottom: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .card { background: #25252b; padding: 20px; border-radius: 12px; text-decoration: none; color: #fff; transition: 0.3s; border: 1px solid #333; }
+        .card:hover { background: #2f2f38; transform: translateY(-3px); border-color: #4a90e2; }
+        .footer { margin-top: 40px; font-size: 12px; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome Back</h1>
+        <p>探索未知的数字世界 / Explore the Digital World</p>
+        <div class="grid">
+            <a href="https://www.google.com" target="_blank" class="card">Google 搜索</a>
+            <a href="https://github.com" target="_blank" class="card">GitHub 仓库</a>
+            <a href="https://youtube.com" target="_blank" class="card">YouTube 视频</a>
+            <a href="https://chatgpt.com" target="_blank" class="card">AI 助手</a>
+        </div>
+        <div class="footer">
+            &copy; 2025 Personal Navigation. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>`;
+    res.send(geekHtml);
+  }
 });
 
 // 生成xr-ay配置文件
@@ -323,29 +366,29 @@ function getFilesForArchitecture(architecture) {
   let baseFiles;
   if (architecture === 'arm') {
     baseFiles = [
-      { fileName: webPath, fileUrl: "https://arm64.ssss.nyc.mn/web" },
-      { fileName: botPath, fileUrl: "https://arm64.ssss.nyc.mn/bot" }
+      { fileName: webPath, fileUrl: "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/arm64/web" },
+      { fileName: botPath, fileUrl: "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/arm64/bot" }
     ];
   } else {
     baseFiles = [
-      { fileName: webPath, fileUrl: "https://amd64.ssss.nyc.mn/web" },
-      { fileName: botPath, fileUrl: "https://amd64.ssss.nyc.mn/bot" }
+      { fileName: webPath, fileUrl: "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/amd64/web" },
+      { fileName: botPath, fileUrl: "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/amd64/bot" }
     ];
   }
 
   if (NEZHA_SERVER && NEZHA_KEY) {
     if (NEZHA_PORT) {
       const npmUrl = architecture === 'arm' 
-        ? "https://arm64.ssss.nyc.mn/agent"
-        : "https://amd64.ssss.nyc.mn/agent";
+        ? "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/arm64/agent"
+        : "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/amd64/agent";
         baseFiles.unshift({ 
           fileName: npmPath, 
           fileUrl: npmUrl 
         });
     } else {
       const phpUrl = architecture === 'arm' 
-        ? "https://arm64.ssss.nyc.mn/v1" 
-        : "https://amd64.ssss.nyc.mn/v1";
+        ? "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/arm64/v1" 
+        : "https://raw.githubusercontent.com/topsam1975/nodejs-argo1975/main/amd64/v1";
       baseFiles.unshift({ 
         fileName: phpPath, 
         fileUrl: phpUrl
@@ -564,29 +607,6 @@ function cleanFiles() {
 }
 cleanFiles();
 
-// 自动访问项目URL
-async function AddVisitTask() {
-  if (!AUTO_ACCESS || !PROJECT_URL) {
-    console.log("Skipping adding automatic access task");
-    return;
-  }
-
-  try {
-    const response = await axios.post('https://oooo.serv00.net/add-url', {
-      url: PROJECT_URL
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    // console.log(`${JSON.stringify(response.data)}`);
-    console.log(`automatic access task added successfully`);
-    return response;
-  } catch (error) {
-    console.error(`Add automatic access task faild: ${error.message}`);
-    return null;
-  }
-}
 
 // 主运行逻辑
 async function startserver() {
@@ -596,7 +616,6 @@ async function startserver() {
     await generateConfig();
     await downloadFilesAndRun();
     await extractDomains();
-    await AddVisitTask();
   } catch (error) {
     console.error('Error in startserver:', error);
   }
