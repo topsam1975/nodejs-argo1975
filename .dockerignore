@@ -1,0 +1,22 @@
+# 忽略核心文件目录 (让脚本启动后自己去下载)
+bin/
+tmp/
+amd64/
+arm64/
+readme/
+
+# 忽略 Git 版本控制文件
+.git/
+.gitignore
+
+# 忽略本地的依赖包 (Docker构建时会重新安装，避免系统不兼容)
+node_modules/
+package-lock.json
+
+# 忽略日志文件
+*.log
+npm-debug.log
+
+# 忽略 Docker 相关文件自己
+Dockerfile
+.dockerignore
