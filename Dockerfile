@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json ./
 
 RUN apk update && \
-    apk add --no-cache curl gcompat && \
+    apk add --no-cache curl gcompat procps ca-certificates && \
     npm install --production
 
 COPY . .
