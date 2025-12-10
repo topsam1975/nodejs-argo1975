@@ -487,11 +487,30 @@ async function extractDomains() {
 
   // 生成 list 和 sub 信息
   async function generateLinks(argoDomain) {
-    const metaInfo = execSync(
-      'curl -sm 5 https://speed.cloudflare.com/meta | awk -F\\" \'{print $26"-"$18}\' | sed -e \'s/ /_/g\'',
-      { encoding: 'utf-8' }
-    );
-    const ISP = metaInfo.trim();
+    // [修改] 使用更智能的正则匹配，不再依赖固定的列号，防止抓取失败
+    const getMeta = 'curl -sm 5 https://speed.cloudflare.com/meta';
+    // 提取国家 (例如 SG)
+    const getCountry = `${getMeta} | sed -n 's/.*"country":"\\([^"]*\\)".*/\\1/p'`;
+    // 提取服务商 (例如 Zeabur)
+    const getOrg = `${getMeta} | sed -n 's/.*"asOrganization":"\\([^"]*\\)".*/\\1/p'`;
+    
+    let ISP = "";
+    try {
+        const country = execSync(getCountry, { encoding: 'utf-8' }).trim();
+        const org = execSync(getOrg, { encoding: 'utf-8' }).trim();
+        // 拼接成 "SG-Zeabur" 的格式，把空格替换为下划线
+        ISP = `${country}-${org}`.replace(/ /g, '_');
+    } catch (e) {
+        console.log("Failed to fetch meta info, using default.");
+        ISP = "Unknown-Node";
+    }
+
+    // 如果抓取失败导致为空，给个默认值
+    if (ISP === "-" || ISP === "") ISP = "Cloudflare_Node";
+
+    // 如果 NAME 为空，则只使用 ISP 作为名称
+    const nodeName = NAME ? `${NAME}-${ISP}` : ISP;
+
     // 如果 NAME 为空，则只使用 ISP 作为名称
     const nodeName = NAME ? `${NAME}-${ISP}` : ISP;
 
@@ -625,4 +644,5 @@ startserver().catch(error => {
 });
 
 app.listen(PORT, () => console.log(`http server is running on port:${PORT}!`));
+
 
