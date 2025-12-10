@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宇宙简史 - A Brief History of the Universe</title>
+    <style>
+        :root {
+            --primary-color: #00f2ff;
+            --secondary-color: #eb00ff;
+            --text-color: #e0e0e0;
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #050505;
+            color: var(--text-color);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 动态星空 Canvas */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(20,20,40,0.8) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        h1 {
+            font-size: 4rem;
+            background: linear-gradient(90deg, var(--primary-color), white, var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            animation: glow 3s infinite alternate;
+        }
+
+        p.subtitle {
+            font-size: 1.5rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            animation: bounce 2s infinite;
+            opacity: 0.7;
+        }
+
+        /* 时间轴容器 */
+        .timeline-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 中间线 */
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+        }
+
+        /* 时间节点卡片 */
+        .event {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            opacity: 0; /* 初始隐藏 */
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .event.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .event::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: -10px;
+            background-color: #fff;
+            border: 4px solid var(--primary-color);
+            top: 25px;
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .left {
+            left: 0;
+        }
+
+        .right {
+            left: 50%;
+        }
+
+        .left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid white;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent var(--border-glass);
+        }
+
+        .right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid white;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent var(--border-glass) transparent transparent;
+        }
+
+        .right::after {
+            left: -10px;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 10px var(--secondary-color);
+        }
+
+        /* 卡片内容 */
+        .content {
+            padding: 20px 30px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .right .content h2 {
+            color: var(--secondary-color);
+        }
+
+        .time-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #ffeb3b;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 动画 */
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--primary-color); }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px var(--secondary-color), 0 0 40px var(--secondary-color); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            .timeline-container::after { left: 31px; }
+            .event { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .event::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent var(--border-glass) transparent transparent; }
+            .left::after, .right::after { left: 21px; }
+            .right { left: 0%; }
+            h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="starfield"></canvas>
+
+    <header>
+        <h1>宇宙简史</h1>
+        <p class="subtitle">从奇点爆炸到浩瀚星河的 138 亿年旅程</p>
+        <div class="scroll-indicator">↓ 向下滚动探索</div>
+    </header>
+
+    <div class="timeline-container">
+        
+        <div class="event left">
+            <div class="content">
+                <span class="time-tag">T = 0</span>
+                <h2>大爆炸 (Big Bang)</h2>
+                <p>宇宙从一个密度无限大、热量无限高的“奇点”开始爆发。空间和时间在此刻诞生，所有已知的物质和能量都源于此。</p>
+            </div>
+        </div>
+
+        <div class="event right">
+            <div class="content">
+                <span class="time-tag">T + 10⁻³² 秒</span>
+                <h2>暴涨时期 (Inflation)</h2>
+                <p>宇宙在极短的时间内经历了指数级的极速膨胀。它的体积瞬间扩大了无数倍，奠定了今天宇宙均匀且平坦的基础结构。</p>
+            </div>
+        </div>
+
+        <div class="event left">
+            <div class="content">
+                <span class="time-tag">T + 38 万年</span>
+                <h2>光子脱耦 (Recombination)</h2>
+                <p>宇宙温度降至约 3000K，电子被原子核捕获形成原子。光子终于可以自由穿梭，形成了我们今天观测到的**宇宙微波背景辐射 (CMB)**。</p>
+            </div>
+        </div>
+
+        <div class="event right">
+            <div class="content">
+                <span class="time-tag">T + 4 亿年</span>
+                <h2>黑暗时代结束</h2>
+                <p>第一代恒星（星族III）开始点亮。引力将气体云坍缩成巨大的恒星，它们发出的光芒终结了宇宙的“黑暗时代”，并开始合成重元素。</p>
+            </div>
+        </div>
+
+        <div class="event left">
+            <div class="content">
+                <span class="time-tag">T + 90 亿年</span>
+                <h2>太阳系形成</h2>
+                <p>在银河系的一个不起眼的旋臂上，一团原始星云在引力作用下坍缩。中心形成了太阳，残留的尘埃和气体逐渐吸积形成了地球和其他行星。</p>
+            </div>
+        </div>
+
+        <div class="event right">
+            <div class="content">
+                <span class="time-tag">T + 138 亿年 (现在)</span>
+                <h2>人类文明</h2>
+                <p>在漫长的演化后，在蓝色星球上诞生了智慧生命。我们开始仰望星空，试图理解这 138 亿年的宏伟历史，并探索未来的命运。</p>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>Created by AI Assistant | 探索永无止境</p>
+    </footer>
+
+    <script>
+        // 1. 星空背景逻辑
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let stars = [];
+
+        function init() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            stars = [];
+            // 创建 200 颗星星
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 移动星星
+                star.y += star.speed;
+                if (star.y > height) {
+                    star.y = 0;
+                    star.x = Math.random() * width;
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        animate();
+
+        // 2. 滚动显示动画逻辑
+        const observerOptions = {
+            threshold: 0.2 // 当元素显示 20% 时触发
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.event').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
