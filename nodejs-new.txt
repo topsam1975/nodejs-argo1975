@@ -11,7 +11,7 @@ const UPLOAD_URL = process.env.UPLOAD_URL || '';      // 节点或订阅自动�
 const PROJECT_URL = process.env.PROJECT_URL || '';    // 需要上传订阅或保活时需填写项目分配的url,例如：https://google.com
 const FILE_PATH = process.env.FILE_PATH || './tmp';   // 运行目录,sub节点文件保存目录
 const SUB_PATH = process.env.SUB_PATH || 'letmego';       // 订阅路径
-const PORT = process.env.SERVER_PORT || process.env.PORT || 3671;        // http服务订阅端口
+const PORT = process.env.SERVER_PORT || process.env.PORT || 3000;        // http服务订阅端口
 const UUID = process.env.UUID || '4045c448-5861-4346-a3de-9875bc955cab'; // 使用哪吒v1,在不同的平台运行需修改UUID,否则会覆盖
 const NEZHA_SERVER = process.env.NEZHA_SERVER || '';        // 哪吒v1填写形式: nz.abc.com:8008  哪吒v0填写形式：nz.abc.com
 const NEZHA_PORT = process.env.NEZHA_PORT || '';            // 使用哪吒v1请留空，哪吒v0需填写
@@ -625,3 +625,4 @@ startserver().catch(error => {
 });
 
 app.listen(PORT, () => console.log(`http server is running on port:${PORT}!`));
+
