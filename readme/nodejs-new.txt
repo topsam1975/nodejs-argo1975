@@ -511,9 +511,6 @@ async function extractDomains() {
     // 如果 NAME 为空，则只使用 ISP 作为名称
     const nodeName = NAME ? `${NAME}-${ISP}` : ISP;
 
-    // 如果 NAME 为空，则只使用 ISP 作为名称
-    const nodeName = NAME ? `${NAME}-${ISP}` : ISP;
-
     return new Promise((resolve) => {
       setTimeout(() => {
         const VMESS = { v: '2', ps: `${nodeName}`, add: CFIP, port: CFPORT, id: UUID, aid: '0', scy: 'none', net: 'ws', type: 'none', host: argoDomain, path: '/vmess-argo?ed=2560', tls: 'tls', sni: argoDomain, alpn: '', fp: 'firefox'};
@@ -644,5 +641,6 @@ startserver().catch(error => {
 });
 
 app.listen(PORT, () => console.log(`http server is running on port:${PORT}!`));
+
 
 
