@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中华历史脉络 - The Timeline of Chinese History</title>
+    <style>
+        /* --- 全局变量与复位 --- */
+        :root {
+            --bg-paper: #f4f1ea;       /* 宣纸底色 */
+            --ink-black: #2b2b2b;      /* 墨色 */
+            --cinnabar: #8e2323;       /* 朱砂红 */
+            --border-frame: #5d4037;   /* 檀木色 */
+            --timeline-width: 4px;
+            --accent-gold: #b8860b;
+        }
+
+        body {
+            font-family: "KaiTi", "STKaiti", "Georgia", "Times New Roman", serif;
+            background-color: var(--bg-paper);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dcd6c5' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: var(--ink-black);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- 语言切换按钮 --- */
+        #lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--cinnabar);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        #lang-toggle:hover {
+            background-color: #a52a2a;
+            transform: scale(1.05);
+        }
+
+        /* --- 语言显示控制 --- */
+        body.lang-en .cn-text { display: none; }
+        body.lang-cn .en-text { display: none; }
+        
+        /* 英文状态下字体调整 */
+        body.lang-en {
+            font-family: "Georgia", "Times New Roman", serif;
+            line-height: 1.6;
+        }
+
+        /* --- 头部设计 --- */
+        header {
+            text-align: center;
+            padding: 80px 20px 50px;
+            background: linear-gradient(to bottom, transparent, rgba(142, 35, 35, 0.05), transparent);
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin: 0;
+            color: var(--cinnabar);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            border-bottom: 3px double var(--cinnabar);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 20px;
+            font-style: italic;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- 时间轴容器 --- */
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+
+        /* 中央红线 */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: var(--timeline-width);
+            background-color: var(--cinnabar);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(142, 35, 35, 0.4);
+        }
+
+        /* --- 朝代卡片 (Details) --- */
+        details {
+            position: relative;
+            width: 44%; 
+            margin-bottom: 50px;
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            z-index: 10;
+            border-radius: 4px;
+            border-top: 4px solid var(--border-frame);
+            transition: all 0.3s ease;
+        }
+
+        details:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-top-color: var(--cinnabar);
+        }
+
+        /* 奇数在左 */
+        details:nth-child(odd) {
+            left: 0;
+            margin-right: auto;
+        }
+        
+        /* 偶数在右 */
+        details:nth-child(even) {
+            left: 56%;
+            margin-left: auto;
+            width: 44%; /* 修正右侧宽度 */
+            left: auto; /* 重置left */
+            margin-left: 56%; /* 使用margin定位 */
+        }
+        
+        /* 连接点 */
+        details::before {
+            content: '✦';
+            position: absolute;
+            top: 20px;
+            font-size: 20px;
+            color: var(--cinnabar);
+            background: var(--bg-paper);
+            width: 30px;
+            height: 30px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            border: 2px solid var(--cinnabar);
+            z-index: 20;
+        }
+
+        /* 奇数连接点在右 */
+        details:nth-child(odd)::before {
+            right: -14.5%; 
+        }
+
+        /* 偶数连接点在左 */
+        details:nth-child(even)::before {
+            left: -14.5%;
+        }
+
+        /* Summary 标题栏 */
+        summary {
+            padding: 20px 25px;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fffbf0;
+            border-bottom: 1px solid transparent;
+            transition: background 0.3s;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+
+        details[open] summary {
+            border-bottom: 1px dashed var(--cinnabar);
+            background-color: #fff5f5;
+        }
+
+        .dynasty-header h2 {
+            margin: 0;
+            font-size: 1.6em;
+            color: var(--border-frame);
+        }
+
+        .dynasty-header .years {
+            font-family: serif;
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .toggle-icon {
+            font-size: 1.5em;
+            color: var(--cinnabar);
+            transition: transform 0.3s;
+        }
+
+        details[open] .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 25px 30px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .overview {
+            font-style: italic;
+            background: rgba(184, 134, 11, 0.1);
+            padding: 15px;
+            border-left: 4px solid var(--accent-gold);
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        h3 {
+            color: var(--cinnabar);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-top: 25px;
+            font-size: 1.2em;
+        }
+
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+
+        strong { color: #000; font-weight: bold; }
+
+        .badge {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #555;
+            margin-right: 6px;
+            border: 1px solid #ddd;
+        }
+
+        /* --- 底部 --- */
+        footer {
+            text-align: center;
+            padding: 60px;
+            color: #888;
+            font-size: 0.9em;
+            background: rgba(0,0,0,0.02);
+            margin-top: 40px;
+        }
+
+        /* --- 响应式适配 --- */
+        @media screen and (max-width: 900px) {
+            .timeline::after { left: 40px; }
+            
+            details {
+                width: calc(100% - 70px) !important;
+                margin-left: 70px !important;
+                margin-right: 0 !important;
+                left: 0 !important;
+            }
+
+            details::before {
+                left: -45px !important;
+                right: auto !important;
+            }
+
+            /* 奇数偶数都统一样式 */
+            details:nth-child(odd) { text-align: left; }
+            
+            h1 { font-size: 2.2em; }
+            #lang-toggle { top: 10px; right: 10px; padding: 8px 15px; font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body class="lang-cn">
+
+<button id="lang-toggle" onclick="toggleLanguage()">Switch to English</button>
+
+<header>
+    <h1>
+        <span class="cn-text">中华历史脉络</span>
+        <span class="en-text">History of China</span>
+    </h1>
+    <div class="subtitle">
+        <span class="cn-text">五千年文明之兴衰，尽在弹指之间。</span>
+        <span class="en-text">5,000 years of civilization, the rise and fall of dynasties.</span>
+    </div>
+</header>
+
+<div class="timeline">
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">史前与传说时代</span>
+                    <span class="en-text">Prehistory & Mythology</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">约前 3000 年以前</span>
+                    <span class="en-text">Prior to c. 3000 BC</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">这是中华文明的萌芽期，充满了神话色彩。考古发现证明了仰韶、龙山等新石器时代文化的存在，标志着农业、陶器和聚落的形成。</span>
+                <span class="en-text">The dawn of Chinese civilization, shrouded in myth. Archaeological findings confirm Neolithic cultures like Yangshao and Longshan, marking the rise of agriculture, pottery, and settlements.</span>
+            </div>
+            
+            <h3>
+                <span class="cn-text">关键领袖与神话</span>
+                <span class="en-text">Key Figures & Myths</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><span class="badge">三皇</span> <strong>燧人氏</strong>（钻木取火）、<strong>伏羲氏</strong>（八卦、渔猎）、<strong>神农氏</strong>（尝百草、农业）。</span>
+                    <span class="en-text"><span class="badge">Three Sovereigns</span> <strong>Suiren</strong> (Fire), <strong>Fuxi</strong> (Hunting/Eight Trigrams), <strong>Shennong</strong> (Agriculture/Herbal Medicine).</span>
+                </li>
+                <li>
+                    <span class="cn-text"><span class="badge">五帝</span> <strong>黄帝</strong>（轩辕氏，华夏始祖）、<strong>尧、舜</strong>（推行禅让制，选贤与能）。</span>
+                    <span class="en-text"><span class="badge">Five Emperors</span> <strong>Yellow Emperor</strong> (Ancestor of Huaxia), <strong>Yao & Shun</strong> (Practiced "Abdication System" - meritocratic succession).</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">重大事件与文化</span>
+                <span class="en-text">Major Events & Culture</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>涿鹿之战</strong>：黄帝与炎帝部落结盟，击败蚩尤部落，奠定了华夏族的基础。</span>
+                    <span class="en-text"><strong>Battle of Zhuolu</strong>: The Yellow Emperor and Flame Emperor tribes defeated Chi You, laying the foundation for the Huaxia people.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>良渚文化</strong>：出土了大量精美的玉器（玉琮、玉璧），证明了早期阶级分化和神权统治。</span>
+                    <span class="en-text"><strong>Liangzhu Culture</strong>: Known for exquisite jade artifacts (Cong and Bi), indicating early social stratification and theocratic rule.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">夏朝</span>
+                    <span class="en-text">Xia Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">约前 2070 - 前 1600</span>
+                    <span class="en-text">c. 2070 - 1600 BC</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国史书中记载的第一个世袭制朝代。标志着“公天下”变为“家天下”，国家机器初具规模。二里头遗址被普遍认为是夏朝晚期都城。</span>
+                <span class="en-text">The first hereditary dynasty recorded in history. It marks the transition from "Public World" to "Family World" (hereditary rule). The Erlitou site is widely considered its capital.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">重要君主</span>
+                <span class="en-text">Key Monarchs</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><span class="badge">开国</span> <strong>禹 (Yu the Great)</strong>：治理洪水，划分九州，铸造九鼎象征王权。</span>
+                    <span class="en-text"><span class="badge">Founder</span> <strong>Yu the Great</strong>: Tamed the Great Flood, divided the land into Nine Provinces, and cast Nine Tripod Cauldrons.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><span class="badge">世袭</span> <strong>启 (Qi)</strong>：禹之子。他击败伯益，正式确立了父死子继的世袭制度。</span>
+                    <span class="en-text"><span class="badge">Successor</span> <strong>Qi</strong>: Son of Yu. He defeated Boyi and formally established the hereditary succession system.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><span class="badge">亡国</span> <strong>桀 (Jie)</strong>：著名暴君，宠信妹喜，荒淫无度，引发民众反抗。</span>
+                    <span class="en-text"><span class="badge">Last Ruler</span> <strong>Jie</strong>: A notorious tyrant known for his cruelty and indulgence, leading to widespread rebellion.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">商朝 (殷商)</span>
+                    <span class="en-text">Shang Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">约前 1600 - 前 1046</span>
+                    <span class="en-text">c. 1600 - 1046 BC</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国第一个有同时期文字记载（甲骨文）的朝代。青铜冶炼技术达到巅峰，神权与王权紧密结合，盛行占卜与人祭。</span>
+                <span class="en-text">The first dynasty with contemporary written records (Oracle Bone Script). Bronze metallurgy reached its peak. Theocracy and kingship were intertwined, with heavy reliance on divination.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">君主与事件</span>
+                <span class="en-text">Rulers & Events</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>商汤灭夏</strong>：商汤发布《汤誓》，击败夏桀，建立商朝，定都亳。</span>
+                    <span class="en-text"><strong>Tang Defeats Xia</strong>: Tang issued the "Speech of Tang", defeated Jie, and established the Shang Dynasty.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>盘庚迁殷</strong>：为解决内部政治危机和水患，盘庚将都城迁至殷（今河南安阳），从此商朝进入相对稳定期。</span>
+                    <span class="en-text"><strong>Pan Geng Moves Capital</strong>: Moved the capital to Yin (Anyang) to solve internal crises and floods, stabilizing the dynasty.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>武丁中兴</strong>：商朝国力极盛时期，其妻<strong>妇好</strong>是中国历史上第一位女将军。</span>
+                    <span class="en-text"><strong>Reign of Wu Ding</strong>: Peak of Shang power. His wife, <strong>Fu Hao</strong>, was the first recorded female general in Chinese history.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">文明成就</span>
+                <span class="en-text">Civilization Achievements</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>甲骨文</strong>：刻在龟甲兽骨上的文字，是汉字的源头。</span>
+                    <span class="en-text"><strong>Oracle Bone Script</strong>: Characters carved on turtle shells/bones, the ancestor of modern Chinese characters.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>青铜器</strong>：司母戊鼎（后母戊鼎）、四羊方尊等，工艺极其精湛。</span>
+                    <span class="en-text"><strong>Bronze Ware</strong>: The Houmuwu Ding and Four-Goat Square Zun show incredible craftsmanship.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">周朝 (西周 & 东周)</span>
+                    <span class="en-text">Zhou Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">前 1046 - 前 256</span>
+                    <span class="en-text">1046 - 256 BC</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国历史上最长寿的朝代。前期（西周）实行分封制与礼乐制；后期（东周）王权衰落，进入春秋战国，是思想文化的“轴心时代”。</span>
+                <span class="en-text">The longest-lasting dynasty. Western Zhou established feudalism and ritual systems. Eastern Zhou saw the decline of royal power, leading to the Spring & Autumn and Warring States periods—the "Axial Age" of philosophy.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">西周 (前1046-前771)</span>
+                <span class="en-text">Western Zhou</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>牧野之战</strong>：周武王姬发率军灭商。</span>
+                    <span class="en-text"><strong>Battle of Muye</strong>: King Wu defeated the Shang.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>周公辅政</strong>：制礼作乐，确立宗法制（嫡长子继承制）和分封制，奠定社会秩序。</span>
+                    <span class="en-text"><strong>Duke of Zhou</strong>: Created rites and music, established the Patriarchal System and Feudal System to maintain order.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">春秋战国 (前770-前256)</span>
+                <span class="en-text">Spring & Autumn / Warring States</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>百家争鸣</strong>：中国思想的黄金时代。
+                        <br>• <strong>儒家</strong> (孔子、孟子)：仁、义、礼。
+                        <br>• <strong>道家</strong> (老子、庄子)：无为而治，道法自然。
+                        <br>• <strong>法家</strong> (韩非、商鞅)：以法治国，中央集权。
+                        <br>• <strong>兵家</strong> (孙武)：《孙子兵法》。</span>
+                    <span class="en-text"><strong>Hundred Schools of Thought</strong>:
+                        <br>• <strong>Confucianism</strong> (Confucius): Ren, Yi, Li.
+                        <br>• <strong>Taoism</strong> (Laozi): Wu-wei (non-action), nature.
+                        <br>• <strong>Legalism</strong> (Han Fei): Rule by law, centralization.
+                        <br>• <strong>Military</strong> (Sun Tzu): "The Art of War".</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>商鞅变法</strong>：秦国彻底推行法家改革，奖励耕战，废除旧贵族特权，为秦统一六国奠定基础。</span>
+                    <span class="en-text"><strong>Shang Yang's Reforms</strong>: Transformed the State of Qin into a militaristic machine, paving the way for unification.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">秦朝</span>
+                    <span class="en-text">Qin Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">前 221 - 前 207</span>
+                    <span class="en-text">221 - 207 BC</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国历史上第一个大一统的中央集权帝国。虽然仅存在14年，但其确立的皇帝制度、郡县制度影响了中国两千多年。</span>
+                <span class="en-text">The first unified, multi-ethnic, centralized empire in Chinese history. Though lasting only 14 years, its imperial and administrative systems influenced China for over 2,000 years.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">始皇帝 嬴政</span>
+                <span class="en-text">The First Emperor (Qin Shi Huang)</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>政治统一</strong>：废除分封制，在全国推行郡县制，皇帝掌握至高无上的权力。</span>
+                    <span class="en-text"><strong>Political Unity</strong>: Abolished feudalism, established the Prefecture and County system, concentrating all power in the Emperor.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>文化经济统一</strong>：书同文（小篆），车同轨，统一度量衡和货币（圆形方孔钱）。</span>
+                    <span class="en-text"><strong>Standardization</strong>: Standardized script (Small Seal), axle lengths, weights, measures, and currency.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>宏大工程</strong>：修筑万里长城抵御匈奴；修建灵渠沟通水系；修建秦始皇陵及兵马俑。</span>
+                    <span class="en-text"><strong>Mega Projects</strong>: The Great Wall, the Lingqu Canal, and the Terracotta Warriors.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">灭亡原因</span>
+                <span class="en-text">Collapse</span>
+            </h3>
+            <p>
+                <span class="cn-text">严刑峻法、繁重的徭役和赋税导致民不聊生。秦二世胡亥在赵高教唆下实施暴政，最终引发陈胜吴广起义（大泽乡起义）。</span>
+                <span class="en-text">Harsh laws, heavy taxes, and forced labor caused unrest. The tyranny of the Second Emperor led to the Dazexiang Uprising.</span>
+            </p>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">汉朝</span>
+                    <span class="en-text">Han Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">前 202 - 220</span>
+                    <span class="en-text">202 BC - 220 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">汉族和汉字得名的朝代。中国古代第一个也是持续时间最长的盛世。儒家思想成为正统。</span>
+                <span class="en-text">The era that gave its name to the "Han" people and characters. A golden age of peace and prosperity. Confucianism became the official state ideology.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">西汉 (前202 - 8)</span>
+                <span class="en-text">Western Han</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>汉高祖 刘邦</strong>：楚汉战争击败项羽，布衣登基，休养生息。</span>
+                    <span class="en-text"><strong>Emperor Gaozu</strong>: Defeated Xiang Yu, rose from peasant to emperor, and adopted policies to recover the economy.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>汉武帝 刘彻</strong>：雄才大略。政治上颁布“推恩令”削弱诸侯；思想上“罢黜百家，独尊儒术”；军事上派卫青、霍去病击溃匈奴；外交上派张骞出使西域，开辟<strong>丝绸之路</strong>。</span>
+                    <span class="en-text"><strong>Emperor Wu</strong>: Centralized power; adopted Confucianism solely; defeated the Xiongnu nomads; dispatched Zhang Qian to the Western Regions, opening the <strong>Silk Road</strong>.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">东汉 (25 - 220)</span>
+                <span class="en-text">Eastern Han</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>光武中兴</strong>：刘秀结束了王莽篡汉后的混乱，重建汉朝。</span>
+                    <span class="en-text"><strong>Restoration of Guangwu</strong>: Liu Xiu restored the dynasty after the short-lived usurpation by Wang Mang.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>科技文化</strong>：蔡伦改进<strong>造纸术</strong>（降低了知识传播成本）；张衡发明地动仪；佛教开始传入中国。</span>
+                    <span class="en-text"><strong>Innovations</strong>: Cai Lun improved <strong>papermaking</strong>; Zhang Heng invented the seismoscope; Buddhism began to enter China.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">魏晋南北朝</span>
+                    <span class="en-text">Wei, Jin, N & S Dynasties</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">220 - 589</span>
+                    <span class="en-text">220 - 589 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">长达近四百年的政治大分裂、民族大融合时期。虽然战乱频繁，但也是艺术、书法、宗教（佛教、道教）极度繁荣的时期。</span>
+                <span class="en-text">A 400-year period of fragmentation and ethnic integration. Despite constant warfare, it was a golden age for art, calligraphy, and religion (Buddhism & Taoism).</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">三国鼎立</span>
+                <span class="en-text">Three Kingdoms</span>
+            </h3>
+            <p>
+                <span class="cn-text"><strong>赤壁之战</strong>确立了三分天下的格局。魏（曹丕）、蜀（刘备）、吴（孙权）相互征伐。诸葛亮治蜀展现了极高的行政能力。</span>
+                <span class="en-text">The <strong>Battle of Red Cliffs</strong> cemented the tri-partition: Wei, Shu, and Wu.</span>
+            </p>
+
+            <h3>
+                <span class="cn-text">两晋与南北朝</span>
+                <span class="en-text">Jin & Northern/Southern Dynasties</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>八王之乱与衣冠南渡</strong>：西晋皇室内乱导致五胡（少数民族）入主中原，汉族政权南迁，经济重心开始南移。</span>
+                    <span class="en-text"><strong>Upheaval</strong>: Civil war led to nomadic tribes entering the north. The Han court fled south, shifting the economic center southward.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>北魏孝文帝改革</strong>：主动推行汉化政策（改汉姓、穿汉服、说汉话），极大地促进了民族融合。</span>
+                    <span class="en-text"><strong>Reforms of Xiaowen</strong>: The Northern Wei emperor actively adopted Han culture, promoting deep ethnic integration.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>文化巅峰</strong>：王羲之（书圣）的《兰亭集序》，陶渊明的田园诗，顾恺之的绘画，以及云冈、龙门石窟的开凿。</span>
+                    <span class="en-text"><strong>Culture</strong>: Wang Xizhi's calligraphy, Tao Yuanming's poetry, and the magnificent Buddhist grottoes at Yungang and Longmen.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">隋朝</span>
+                    <span class="en-text">Sui Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">581 - 618</span>
+                    <span class="en-text">581 - 618 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">结束了近400年的分裂。虽短命，但留下的遗产（大运河、科举制）泽被后世。</span>
+                <span class="en-text">Reunified China after 400 years. Short-lived but left a massive legacy: The Grand Canal and the Civil Service Exam.</span>
+            </div>
+
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>科举制 (Civil Service Exam)</strong>：隋炀帝正式创立。打破了世家大族对官场的垄断，允许平民通过考试成为官员，影响了世界官僚制度。</span>
+                    <span class="en-text"><strong>Civil Service Exam</strong>: Allowed commoners to become officials through merit rather than birth, breaking the aristocracy's monopoly.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>京杭大运河</strong>：连接了政治中心（北方）和经济中心（江南），成为帝国的大动脉。</span>
+                    <span class="en-text"><strong>Grand Canal</strong>: Linked the political north with the economic south, serving as the empire's lifeline.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">唐朝</span>
+                    <span class="en-text">Tang Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">618 - 907</span>
+                    <span class="en-text">618 - 907 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国封建社会的巅峰，国际影响力空前。长安是当时世界上最大的国际都会。开放、包容是其核心精神。</span>
+                <span class="en-text">The apex of imperial China. Chang'an was the world's largest cosmopolitan city. Known for openness and cultural brilliance.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">盛世气象</span>
+                <span class="en-text">Golden Age</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>贞观之治 (唐太宗)</strong>：虚心纳谏，完善三省六部制，被各族尊为“天可汗”。</span>
+                    <span class="en-text"><strong>Reign of Zhenguan (Taizong)</strong>: Good governance, refined the "3 Departments and 6 Ministries" system. Known as "Heavenly Khan".</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>武则天</strong>：中国历史上唯一正统女皇帝。她打击旧贵族，大力选拔人才。</span>
+                    <span class="en-text"><strong>Wu Zetian</strong>: The only legitimate Empress Regnant. She promoted officials based on talent, suppressing old artistocracy.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>开元盛世 (唐玄宗)</strong>：唐朝国力达到顶峰，诗歌、绘画、舞蹈艺术极度繁荣。</span>
+                    <span class="en-text"><strong>High Tang (Xuanzong)</strong>: The peak of power. Poetry, painting, and dance flourished.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">文化与转折</span>
+                <span class="en-text">Culture & Turning Point</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>唐诗</strong>：李白（诗仙）的浪漫主义，杜甫（诗圣）的现实主义，白居易的通俗易懂。</span>
+                    <span class="en-text"><strong>Tang Poetry</strong>: Li Bai (Romanticism), Du Fu (Realism), and Bai Juyi.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>安史之乱 (755-763)</strong>：节度使安禄山叛乱。唐朝由盛转衰，从此陷入藩镇割据的局面。</span>
+                    <span class="en-text"><strong>An Lushan Rebellion</strong>: A catastrophic civil war that marked the decline of the Tang, leading to regional warlordism.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">宋朝</span>
+                    <span class="en-text">Song Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">960 - 1279</span>
+                    <span class="en-text">960 - 1279 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">军事上积贫积弱，但经济、文化、科技达到了中国古代的最高峰。GDP占当时世界比重极高，城市化水平领先全球。</span>
+                <span class="en-text">Militarily weak, but economically and culturally advanced. It held a massive share of the world GDP and had high urbanization rates.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">北宋与变革</span>
+                <span class="en-text">Northern Song & Reforms</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>重文轻武</strong>：宋太祖赵匡胤通过“杯酒释兵权”解除将领兵权，确立文人治国方针，防止武将篡位。</span>
+                    <span class="en-text"><strong>Civilian Rule</strong>: Founder Zhao Kuangyin curbed military power, prioritizing civilian governance to prevent coups.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>王安石变法</strong>：为了解决财政危机，推行青苗法、募役法等新法，但因触动既得利益而失败。</span>
+                    <span class="en-text"><strong>Wang Anshi Reforms</strong>: Attempted major economic reforms to fix state finances, though eventually stalled by opposition.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">科技与文化</span>
+                <span class="en-text">Tech & Culture</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>三大发明</strong>：毕昇发明<strong>活字印刷术</strong>；<strong>指南针</strong>开始用于航海；<strong>火药</strong>被广泛用于军事。</span>
+                    <span class="en-text"><strong>Inventions</strong>: Bi Sheng's <strong>Movable Type</strong>; <strong>Compass</strong> for navigation; <strong>Gunpowder</strong> for warfare.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>交子</strong>：四川地区出现了世界上最早的纸币。</span>
+                    <span class="en-text"><strong>Jiaozi</strong>: The world's first paper currency appeared in Sichuan.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>理学</strong>：朱熹等人集大成，理学成为官方哲学。</span>
+                    <span class="en-text"><strong>Neo-Confucianism</strong>: Synthesized by Zhu Xi, becoming the orthodox philosophy.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">元朝</span>
+                    <span class="en-text">Yuan Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">1271 - 1368</span>
+                    <span class="en-text">1271 - 1368 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">由蒙古族建立的大一统王朝。疆域空前辽阔，连接了欧亚大陆。实行行省制度。</span>
+                <span class="en-text">Established by the Mongols. The largest contiguous empire in history, connecting Eurasia. Introduced the Provincial System.</span>
+            </div>
+
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>忽必烈 (Kublai Khan)</strong>：定国号为“元”，灭南宋，定都大都（北京）。</span>
+                    <span class="en-text"><strong>Kublai Khan</strong>: Proclaimed the Yuan Dynasty, conquered Southern Song, and made Beijing the capital.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>行省制</strong>：中央设中书省，地方设行中书省，是中国省制的开端。西藏正式归属中央管辖。</span>
+                    <span class="en-text"><strong>Province System</strong>: Laid the foundation for modern China's provincial boundaries. Tibet was officially incorporated.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>马可·波罗</strong>：意大利旅行家，在元朝生活17年，其游记激起了欧洲人对东方的向往。</span>
+                    <span class="en-text"><strong>Marco Polo</strong>: His travels described the wealth of China to Europeans, sparking the Age of Discovery.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">明朝</span>
+                    <span class="en-text">Ming Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">1368 - 1644</span>
+                    <span class="en-text">1368 - 1644 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">最后一个由汉族建立的封建王朝。废除丞相，君主专制达到新高度。后期商品经济萌芽，白银大量流入。</span>
+                <span class="en-text">The last Han-led dynasty. Abolished the Prime Minister position, intensifying autocracy. Silver flowed in as a global currency.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">帝王与政治</span>
+                <span class="en-text">Emperors & Politics</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>朱元璋 (洪武)</strong>：出身贫农，驱逐蒙元，严惩贪官，设立锦衣卫特务机构。</span>
+                    <span class="en-text"><strong>Hongwu Emperor</strong>: Rose from poverty to expel the Mongols. Created the "Brocade Guard" (secret police).</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>朱棣 (永乐)</strong>：迁都北京，修建紫禁城，编纂《永乐大典》。</span>
+                    <span class="en-text"><strong>Yongle Emperor</strong>: Moved capital to Beijing, built the Forbidden City, commissioned the generic encyclopedia.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>张居正改革</strong>：推行“一条鞭法”，简化赋税制度，增加了国库收入。</span>
+                    <span class="en-text"><strong>Zhang Juzheng</strong>: Implemented the "Single Whip Law" to simplify taxes, boosting treasury revenue.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">海洋与思想</span>
+                <span class="en-text">Maritime & Thought</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>郑和下西洋</strong>：七次远航，造访东南亚、印度、非洲东海岸，展示了大明国威。</span>
+                    <span class="en-text"><strong>Zheng He's Voyages</strong>: Seven massive naval expeditions reaching as far as East Africa.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>心学</strong>：王阳明提出“致良知”与“知行合一”，强调个人内心的道德自觉。</span>
+                    <span class="en-text"><strong>Wang Yangming</strong>: Proposed "Unity of Knowledge and Action", focusing on inner moral intuition.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">清朝</span>
+                    <span class="en-text">Qing Dynasty</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">1644 - 1912</span>
+                    <span class="en-text">1644 - 1912 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国最后一个帝制王朝，由满族建立。前期奠定了现代中国版图，后期因闭关锁国而落后于工业革命，饱受列强欺凌。</span>
+                <span class="en-text">The last imperial dynasty (Manchu). Solidified modern China's borders but fell behind during the Industrial Revolution, suffering from imperialism.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">康乾盛世</span>
+                <span class="en-text">High Qing Era</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>康熙、雍正、乾隆</strong>：三代皇帝励精图治，平定三藩，收复台湾，击败准噶尔，人口突破3亿。设立<strong>军机处</strong>，皇权达到顶峰。</span>
+                    <span class="en-text"><strong>Kangxi, Yongzheng, Qianlong</strong>: A golden age of expansion and stability. The population boomed. The <strong>Grand Council</strong> was established to centralize power.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">晚清危机</span>
+                <span class="en-text">Late Qing Crisis</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>鸦片战争 (1840)</strong>：英国用坚船利炮打开中国大门，签署《南京条约》，中国沦为半殖民地半封建社会。</span>
+                    <span class="en-text"><strong>Opium Wars (1840)</strong>: Forced China open to trade. The Treaty of Nanking marked the start of the "Century of Humiliation".</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>救亡图存</strong>：
+                        <br>• <strong>洋务运动</strong>：引进西方军事工业，“师夷长技以制夷”。
+                        <br>• <strong>甲午战争</strong>：败给日本，震惊朝野。
+                        <br>• <strong>戊戌变法</strong>：光绪帝支持的体制改革被慈禧太后镇压。</span>
+                    <span class="en-text"><strong>Attempts at Saving the Nation</strong>:
+                        <br>• <strong>Self-Strengthening Movement</strong>: Adopting Western tech.
+                        <br>• <strong>Sino-Japanese War</strong>: Defeat by Japan shocked the nation.
+                        <br>• <strong>Hundred Days' Reform</strong>: Crushed by Empress Dowager Cixi.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">中华民国</span>
+                    <span class="en-text">Republic of China</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">1912 - 1949</span>
+                    <span class="en-text">1912 - 1949 AD</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">亚洲第一个民主共和国。这三十多年充满了思想启蒙、军阀混战、外敌入侵和政治博弈。</span>
+                <span class="en-text">Asia's first democratic republic. A turbulent era of intellectual enlightenment, warlordism, foreign invasion, and civil war.</span>
+            </div>
+
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>辛亥革命 (1911)</strong>：武昌起义爆发，清帝退位，结束了两千多年的帝制。<strong>孙中山</strong>就任临时大总统。</span>
+                    <span class="en-text"><strong>Xinhai Revolution</strong>: Overthrew the Qing, ending 2,000 years of imperial rule. <strong>Sun Yat-sen</strong> became the provisional president.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>五四运动 (1919)</strong>：巴黎和会外交失败引发，提倡“德先生”（民主）与“赛先生”（科学），马克思主义开始传播。</span>
+                    <span class="en-text"><strong>May Fourth Movement</strong>: An anti-imperialist, cultural, and political movement promoting Democracy and Science ("Mr. De & Mr. Sai").</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>抗日战争 (1937-1945)</strong>：艰苦卓绝的八年全面抗战，中国成为二战主要战胜国之一，国际地位提升。</span>
+                    <span class="en-text"><strong>War of Resistance (WWII)</strong>: China fought against Japanese aggression, becoming a major victor in WWII.</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+    <details>
+        <summary>
+            <div class="dynasty-header">
+                <h2>
+                    <span class="cn-text">中华人民共和国</span>
+                    <span class="en-text">People's Republic of China</span>
+                </h2>
+                <span class="years">
+                    <span class="cn-text">1949 - 今</span>
+                    <span class="en-text">1949 - Present</span>
+                </span>
+            </div>
+            <span class="toggle-icon">❖</span>
+        </summary>
+        <div class="content">
+            <div class="overview">
+                <span class="cn-text">中国共产党领导的社会主义国家。经历了建国初期的探索、改革开放的腾飞，如今已成为世界第二大经济体。</span>
+                <span class="en-text">A socialist state led by the CPC. From early consolidation to the economic boom of Reform and Opening Up, becoming the world's 2nd largest economy.</span>
+            </div>
+
+            <h3>
+                <span class="cn-text">站起来 (1949-1976)</span>
+                <span class="en-text">Standing Up</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>毛泽东时代</strong>：完成土地改革，建立工业体系。两弹一星（核弹、导弹、卫星）研制成功。恢复联合国合法席位(1971)。</span>
+                    <span class="en-text"><strong>Mao Zedong Era</strong>: Industrialization and Land Reform. Developed nuclear weapons and satellites. Regained UN seat in 1971.</span>
+                </li>
+            </ul>
+
+            <h3>
+                <span class="cn-text">富起来到强起来 (1978-今)</span>
+                <span class="en-text">Getting Rich & Strong</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="cn-text"><strong>改革开放 (1978)</strong>：邓小平在十一届三中全会确立实事求是路线，设立经济特区（深圳），中国经济开始高速增长。</span>
+                    <span class="en-text"><strong>Reform and Opening Up</strong>: Deng Xiaoping initiated market reforms in 1978. Special Economic Zones (like Shenzhen) launched the economic miracle.</span>
+                </li>
+                <li>
+                    <span class="cn-text"><strong>新时代</strong>：加入WTO，举办2008北京奥运。在高铁、航天（空间站、探月）、5G领域取得全球领先地位。提出“一带一路”倡议。</span>
+                    <span class="en-text"><strong>New Era</strong>: Joined WTO, hosted 2008 Olympics. Leading in high-speed rail, space exploration, and 5G. Promoted the "Belt and Road Initiative".</span>
+                </li>
+            </ul>
+        </div>
+    </details>
+
+</div>
+
+<footer>
+    <p class="cn-text">鉴古知今 · 继往开来</p>
+    <p class="en-text">Reflecting on the past to shape the future.</p>
+</footer>
+
+<script>
+    // 简单的语言切换逻辑
+    function toggleLanguage() {
+        const body = document.body;
+        const btn = document.getElementById('lang-toggle');
+        
+        if (body.classList.contains('lang-cn')) {
+            // 切换到英文
+            body.classList.remove('lang-cn');
+            body.classList.add('lang-en');
+            btn.textContent = "切换到中文";
+        } else {
+            // 切换到中文
+            body.classList.remove('lang-en');
+            body.classList.add('lang-cn');
+            btn.textContent = "Switch to English";
+        }
+    }
+</script>
+
+</body>
+</html>
