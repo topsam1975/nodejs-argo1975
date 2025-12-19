@@ -161,7 +161,7 @@ async function generateConfig() {
   const config = {
     log: { access: '/dev/null', error: '/dev/null', loglevel: 'none' },
     inbounds: [
-      { port: ARGO_PORT, protocol: 'vless', settings: { clients: [{ id: UUID, flow: 'xtls-rprx-vision' }], decryption: 'none', fallbacks: [{ dest: 3001 }, { path: "/vless-argo", dest: 3002 }, { path: "/vmess-argo", dest: 3003 }, { path: "/trojan-argo", dest: 3004 }] }, streamSettings: { network: 'tcp' } },
+      { port: ARGO_PORT, protocol: 'vless', settings: { clients: [{ id: UUID, flow: '' }], decryption: 'none', fallbacks: [{ dest: 3001 }, { path: "/vless-argo", dest: 3002 }, { path: "/vmess-argo", dest: 3003 }, { path: "/trojan-argo", dest: 3004 }] }, streamSettings: { network: 'tcp' } },
       { port: 3001, listen: "127.0.0.1", protocol: "vless", settings: { clients: [{ id: UUID }], decryption: "none" }, streamSettings: { network: "tcp", security: "none" } },
       { port: 3002, listen: "127.0.0.1", protocol: "vless", settings: { clients: [{ id: UUID, level: 0 }], decryption: "none" }, streamSettings: { network: "ws", security: "none", wsSettings: { path: "/vless-argo" } }, sniffing: { enabled: true, destOverride: ["http", "tls", "quic"], metadataOnly: false } },
       { port: 3003, listen: "127.0.0.1", protocol: "vmess", settings: { clients: [{ id: UUID, alterId: 0 }] }, streamSettings: { network: "ws", wsSettings: { path: "/vmess-argo" } }, sniffing: { enabled: true, destOverride: ["http", "tls", "quic"], metadataOnly: false } },
@@ -525,14 +525,14 @@ async function extractDomains() {
         const nodeName = ips.length > 1 ? `${baseName}-${index + 1}` : baseName;
 
         // VLESS
-        subTxt += `vless://${UUID}@${ip}:${CFPORT}?encryption=none&security=tls&sni=${argoDomain}&fp=firefox&type=ws&host=${argoDomain}&path=%2Fvless-argo%3Fed%3D2560#${nodeName}_VL\n`;
+        subTxt += `vless://${UUID}@${ip}:${CFPORT}?encryption=none&security=tls&sni=${argoDomain}&fp=randomized&type=ws&host=${argoDomain}&path=%2Fvless-argo%3Fed%3D2560#${nodeName}_VL\n`;
         
         // VMess
-        const VMESS = { v: '2', ps: `${nodeName}_VM`, add: ip, port: CFPORT, id: UUID, aid: '0', scy: 'none', net: 'ws', type: 'none', host: argoDomain, path: '/vmess-argo?ed=2560', tls: 'tls', sni: argoDomain, alpn: '', fp: 'firefox'};
+        const VMESS = { v: '2', ps: `${nodeName}_VM`, add: ip, port: CFPORT, id: UUID, aid: '0', scy: 'none', net: 'ws', type: 'none', host: argoDomain, path: '/vmess-argo?ed=2560', tls: 'tls', sni: argoDomain, alpn: '', fp: 'randomized'};
         subTxt += `vmess://${Buffer.from(JSON.stringify(VMESS)).toString('base64')}\n`;
         
         // Trojan
-        subTxt += `trojan://${UUID}@${ip}:${CFPORT}?security=tls&sni=${argoDomain}&fp=firefox&type=ws&host=${argoDomain}&path=%2Ftrojan-argo%3Fed%3D2560#${nodeName}_TR\n`;
+        subTxt += `trojan://${UUID}@${ip}:${CFPORT}?security=tls&sni=${argoDomain}&fp=randomized&type=ws&host=${argoDomain}&path=%2Ftrojan-argo%3Fed%3D2560#${nodeName}_TR\n`;
     });
 
     // 保存文件
@@ -654,3 +654,4 @@ startserver().catch(error => {
 });
 
 app.listen(PORT, () => console.log(`http server is running on port:${PORT}!`));
+
