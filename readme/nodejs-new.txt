@@ -108,16 +108,28 @@ function cleanupOldFiles() {
 }
 
 // --------------------------------------------------------------------------------
-// [功能 1 & 2] 智能伪装首页 (优先 index.html，否则使用极客模板)
+//  智能伪装首页 (优先服务器根目录 index.html，然后是所在目录 index.html，否则使用极客模板)
 // --------------------------------------------------------------------------------
 app.get("/", function(req, res) {
-  const customPagePath = path.join(__dirname, 'index.html');
+  // 1. 定义两个路径
+  // 路径一：服务器运行根目录 (process.cwd() 通常是你运行 node 命令的文件夹)
+  const rootPagePath = path.join(process.cwd(), 'index.html');
+  // 路径二：原策略A - 代码文件所在目录 (__dirname)
+  const localPagePath = path.join(__dirname, 'index.html');
 
-  if (fs.existsSync(customPagePath)) {
-    // 策略 A: 如果同目录下存在 index.html，直接显示
-    res.sendFile(customPagePath);
-  } else {
-    // 策略 B: 否则显示内置的极客风格导航页 (替代 Hello World)
+  // 2. 开始按优先级判断
+  if (fs.existsSync(rootPagePath)) {
+    // 优先级 1: 如果根目录下有 index.html，优先使用它
+    console.log('Serving from Root:', rootPagePath); // 可选：后台打印日志方便调试
+    res.sendFile(rootPagePath);
+  } 
+  else if (fs.existsSync(localPagePath)) {
+    // 优先级 2 (原策略A): 如果代码同目录下有 index.html
+    console.log('Serving from Local Dir:', localPagePath);
+    res.sendFile(localPagePath);
+  } 
+  else {
+    // 优先级 3 (原策略B): 都没有，显示内置极客风格页
     const geekHtml = `
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -654,4 +666,3 @@ startserver().catch(error => {
 });
 
 app.listen(PORT, () => console.log(`http server is running on port:${PORT}!`));
-
